@@ -9,7 +9,7 @@ import (
 )
 
 // SetupRouter 初始化 Gin 路由，并定义所有的路由规则
-func SetupRouter() *gin.Engine {
+func SetupRouter(s *execute.SelfObject) *gin.Engine {
 	// 创建 Gin 路由实例
 	r := gin.Default()
 
@@ -23,7 +23,7 @@ func SetupRouter() *gin.Engine {
 		}
 
 		// 执行对象命令，并将结果文件传递给前端
-		execute.ObjExecute(&params, c)
+		execute.ObjExecute(&params, s, c)
 	})
 
 	return r

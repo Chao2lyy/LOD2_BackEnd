@@ -60,7 +60,7 @@ func SaveConfigToFile(config map[string]string, filePath string) error {
 }
 
 // ObjExecute 执行对象命令，并将结果文件夹传递给前端
-func ObjExecute(params *RequestParams, c *gin.Context) {
+func ObjExecute(params *RequestParams, s *SelfObject, c *gin.Context) {
 	// 合并默认参数和前端传递的参数
 	mergedConfig := MergeParameters(params)
 
@@ -73,18 +73,18 @@ func ObjExecute(params *RequestParams, c *gin.Context) {
 	remoteSavePath := filepath.Join(LOD2Path, "save_temp") // 临时保存文件夹
 	remoteDataPath = filepath.ToSlash(remoteDataPath)
 	remoteSavePath = filepath.ToSlash(remoteSavePath)
-	// 创建 SelfObject 实例并初始化 cliConf 字段
-	s := &SelfObject{
-		cliConf: &ClientConfig{},
-	}
+	// // 创建 SelfObject 实例并初始化 cliConf 字段
+	// s := &SelfObject{
+	// 	CliConf: &ClientConfig{},
+	// }
 
-	// 创建 SSH 连接
-	err := s.cliConf.CreateClient(IP, Port, User, Password)
-	if err != nil {
-		fmt.Println("SSH连接失败:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "SSH连接失败"})
-		return
-	}
+	// // 创建 SSH 连接
+	// err := s.CliConf.CreateClient(IP, Port, User, Password)
+	// if err != nil {
+	// 	fmt.Println("SSH连接失败:", err)
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "SSH连接失败"})
+	// 	return
+	// }
 
 	// 上传本地文件夹到远程服务器
 	if err := s.UploadLocalFolderToRemote(dataPathWin, remoteDataPath); err != nil {
@@ -102,7 +102,7 @@ func ObjExecute(params *RequestParams, c *gin.Context) {
 
 	// 在远程服务器上创建配置文件
 	remoteTempFilePath = filepath.ToSlash(remoteTempFilePath)
-	err = s.createRemoteConfigFile(mergedConfig, remoteTempFilePath)
+	err := s.createRemoteConfigFile(mergedConfig, remoteTempFilePath)
 	if err != nil {
 		fmt.Println("在远程服务器上创建配置文件失败:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "在远程服务器上创建配置文件失败"})
@@ -137,6 +137,7 @@ func ObjExecute(params *RequestParams, c *gin.Context) {
 
 	// 将下载的结果文件夹传递给前端
 	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "命令执行成功，结果已下载到本地", "local_save_path": localSavePath})
+	s.TaskCompleted()
 }
 
 // formatWindowsPathToUnix 将 Windows 路径格式转换为 Unix 格式

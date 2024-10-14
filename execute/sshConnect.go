@@ -11,7 +11,7 @@ import (
 
 // SelfObject 定义包含 SSH 配置的结构体
 type SelfObject struct {
-	cliConf *ClientConfig
+	CliConf *ClientConfig
 }
 
 // ClientConfig 定义包含 SSH 会话的配置
@@ -71,7 +71,7 @@ func (c *ClientConfig) CreateClient(ip string, port int, user, password string) 
 // RunCommand 执行远程命令，并将结果异步实时传回
 func (s *SelfObject) RunCommand(command string) error {
 	// 创建新的 SSH 会话（Session）
-	session, err := s.cliConf.Client.NewSession()
+	session, err := s.CliConf.Client.NewSession()
 	if err != nil {
 		return fmt.Errorf("无法创建新的会话: %v", err)
 	}
