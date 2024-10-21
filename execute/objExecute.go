@@ -87,8 +87,13 @@ func ObjExecute(params *RequestParams, s *SelfObject, c *gin.Context) {
 	// }
 
 	// 上传本地文件夹到远程服务器
-	if err := s.UploadLocalFolderToRemote(dataPathWin, remoteDataPath); err != nil {
-		fmt.Println("上传本地文件夹失败:", err)
+	if err := s.UploadLocalFolderToRemote(dataPathWin, remoteDataPath, 1); err != nil {
+		fmt.Println("上传本地输入文件夹失败:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "上传本地文件夹失败"})
+		return
+	}
+	if err := s.UploadLocalFolderToRemote(savePathWin, remoteSavePath, 1); err != nil {
+		fmt.Println("上传本地输出文件夹失败:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "上传本地文件夹失败"})
 		return
 	}
@@ -109,12 +114,12 @@ func ObjExecute(params *RequestParams, s *SelfObject, c *gin.Context) {
 		return
 	}
 	// 在远程服务器上的 save_path 路径中创建 depths、results、rgb 文件夹
-	err = s.createRemoteFolders(remoteSavePath)
-	if err != nil {
-		fmt.Println("创建远程文件夹失败:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建远程文件夹失败"})
-		return
-	}
+	// err = s.createRemoteFolders(remoteSavePath)
+	// if err != nil {
+	// 	fmt.Println("创建远程文件夹失败:", err)
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "创建远程文件夹失败"})
+	// 	return
+	// }
 
 	// 构建执行命令
 	command := fmt.Sprintf("bash -c 'export LD_LIBRARY_PATH=%slib && cd %s && ./3DMapSL_obj %s'", LOD2Path, LOD2Path, remoteTempFilePath)
@@ -123,6 +128,15 @@ func ObjExecute(params *RequestParams, s *SelfObject, c *gin.Context) {
 	if err := s.RunCommand(command); err != nil {
 		fmt.Println("运行命令出错:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "命令执行失败"})
+		localSavePath := savePathWin
+		err = s.DownloadRemoteFolderToLocal(remoteSavePath, localSavePath)
+		if err != nil {
+			fmt.Println("下载远程文件夹失败:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "下载远程文件夹失败"})
+			s.CleanupRemote()
+			return
+		}
+		s.CleanupRemote()
 		return
 	}
 
@@ -132,6 +146,7 @@ func ObjExecute(params *RequestParams, s *SelfObject, c *gin.Context) {
 	if err != nil {
 		fmt.Println("下载远程文件夹失败:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "下载远程文件夹失败"})
+		s.CleanupRemote()
 		return
 	}
 

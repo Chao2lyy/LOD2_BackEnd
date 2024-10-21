@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	dataTempPath = LOD2Path + "data_temp" // 临时数据路径
-	saveTempPath = LOD2Path + "save_temp" // 临时保存路径
+	dataTempPath   = LOD2Path + "data_temp"   // 临时数据路径
+	saveTempPath   = LOD2Path + "save_temp"   // 临时保存路径
+	inputTempPath  = LOD2Path + "input_temp"  // 临时数据路径
+	outputTempPath = LOD2Path + "output_temp" // 临时保存路径
 )
 
 // createSFTPClient 创建 SFTP 客户端
@@ -27,7 +29,8 @@ func (s *SelfObject) createSFTPClient() (*sftp.Client, error) {
 }
 
 // UploadLocalFolderToRemote 上传本地文件夹到远程服务器的指定目录
-func (s *SelfObject) UploadLocalFolderToRemote(localFolderPath, remoteFolderPath string) error {
+func (s *SelfObject) UploadLocalFolderToRemote(localFolderPath, remoteFolderPath string, part int) error {
+	fmt.Println(localFolderPath, remoteFolderPath)
 	client, err := s.createSFTPClient()
 	if err != nil {
 		return fmt.Errorf("无法创建 SFTP 客户端: %v", err)
@@ -45,7 +48,12 @@ func (s *SelfObject) UploadLocalFolderToRemote(localFolderPath, remoteFolderPath
 		go func() {
 			defer wg.Done()
 			for localPath := range fileChan {
-				remotePath := filepath.Join(remoteFolderPath, strings.TrimPrefix(localPath, localFolderPath))
+				var remotePath string
+				if part == 1 || part == 3 {
+					remotePath = filepath.Join(remoteFolderPath, strings.TrimPrefix(localPath, localFolderPath))
+				} else if part == 4 {
+					remotePath = filepath.Join(remoteFolderPath, filepath.Base(localPath))
+				}
 				remotePath = filepath.ToSlash(remotePath) // POSIX 路径格式
 				//fmt.Println(remotePath)
 				if err := s.uploadFile(client, localPath, remotePath); err != nil {
@@ -264,6 +272,17 @@ func (s *SelfObject) CleanupRemote() {
 	}
 	if err := s.removeRemoteDir(saveTempPath); err != nil {
 		fmt.Printf("清理 save_temp 目录失败: %v\n", err)
+	}
+}
+
+// 第四部分清理
+func (s *SelfObject) CleanupRemote4() {
+	// 删除远程 data_temp 和 save_temp 目录
+	if err := s.removeRemoteDir(inputTempPath); err != nil {
+		fmt.Printf("清理 input_temp 目录失败: %v\n", err)
+	}
+	if err := s.removeRemoteDir(outputTempPath); err != nil {
+		fmt.Printf("清理 output_temp 目录失败: %v\n", err)
 	}
 }
 

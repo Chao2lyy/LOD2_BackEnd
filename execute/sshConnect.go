@@ -115,7 +115,7 @@ func (s *SelfObject) RunCommand(command string) error {
 			if err != nil {
 				break
 			}
-			fmt.Print("错误:", string(buf[:n])) // 将错误输出实时打印到本地终端
+			fmt.Print(string(buf[:n])) // 将错误输出实时打印到本地终端
 		}
 	}()
 
@@ -144,6 +144,21 @@ func (s *SelfObject) createRemoteConfigFile(config map[string]string, remoteFile
 	configContent := ""
 	for key, value := range config {
 		configContent += fmt.Sprintf("%s=%s\n", key, value)
+	}
+
+	// 构建远程创建文件的命令，使用 echo 将配置内容写入文件
+	createCommand := fmt.Sprintf("echo -e \"%s\" > %s", escapeSpecialChars(configContent), remoteFilePath)
+
+	// 在远程服务器上执行创建文件的命令
+	return s.RunCommand(createCommand)
+}
+func (s *SelfObject) createRemoteConfigFile4(config map[string]string, remoteFilePath string) error {
+	// 将配置内容转换为字符串形式
+	fmt.Println("remoteFilePath", remoteFilePath)
+
+	configContent := ""
+	for _, value := range config {
+		configContent += fmt.Sprintf("%s\n", value)
 	}
 
 	// 构建远程创建文件的命令，使用 echo 将配置内容写入文件

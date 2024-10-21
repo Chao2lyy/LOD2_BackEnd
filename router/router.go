@@ -26,5 +26,11 @@ func SetupRouter(s *execute.SelfObject) *gin.Engine {
 		execute.ObjExecute(&params, s, c)
 	})
 
+	// 定义 /json-execute 路由，接收更复杂的 JSON 配置结构
+	r.POST("/block-execute", func(c *gin.Context) {
+		// 调用 JsonExecute 函数来处理 JSON 格式的配置
+		execute.JsonExecute(c, s)
+	})
+
 	return r
 }
