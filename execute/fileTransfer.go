@@ -16,6 +16,8 @@ const (
 	saveTempPath   = LOD2Path + "save_temp"   // 临时保存路径
 	inputTempPath  = LOD2Path + "input_temp"  // 临时数据路径
 	outputTempPath = LOD2Path + "output_temp" // 临时保存路径
+	data2TempPath  = LOD2Path + "data2_temp"  // 临时数据路径
+	save2TempPath  = LOD2Path + "save2_temp"  // 临时保存路径
 )
 
 // createSFTPClient 创建 SFTP 客户端
@@ -274,6 +276,15 @@ func (s *SelfObject) CleanupRemote() {
 		fmt.Printf("清理 save_temp 目录失败: %v\n", err)
 	}
 }
+func (s *SelfObject) CleanupRemote2() {
+	// 删除远程 data_temp 和 save_temp 目录
+	if err := s.removeRemoteDir(data2TempPath); err != nil {
+		fmt.Printf("清理 data_temp 目录失败: %v\n", err)
+	}
+	if err := s.removeRemoteDir(save2TempPath); err != nil {
+		fmt.Printf("清理 save_temp 目录失败: %v\n", err)
+	}
+}
 
 // 第四部分清理
 func (s *SelfObject) CleanupRemote4() {
@@ -283,6 +294,26 @@ func (s *SelfObject) CleanupRemote4() {
 	}
 	if err := s.removeRemoteDir(outputTempPath); err != nil {
 		fmt.Printf("清理 output_temp 目录失败: %v\n", err)
+	}
+}
+func (s *SelfObject) CleanupRemoteAll() {
+	// 将所有需要清理的路径存储在一个切片中
+	paths := []string{dataTempPath, saveTempPath, data2TempPath, save2TempPath, inputTempPath, outputTempPath}
+
+	var failedPaths []string
+
+	// 循环删除每个路径
+	for _, path := range paths {
+		if err := s.removeRemoteDir(path); err != nil {
+			failedPaths = append(failedPaths, path)
+		}
+	}
+
+	// 如果有失败的路径，打印失败信息
+	if len(failedPaths) > 0 {
+		fmt.Printf("以下目录清理失败: %v\n", failedPaths)
+	} else {
+		fmt.Println("所有目录清理成功")
 	}
 }
 

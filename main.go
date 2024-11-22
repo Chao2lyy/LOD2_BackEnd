@@ -33,8 +33,8 @@ func main() {
 	fmt.Println("服务器启动，监听端口8080")
 	if err := r.Run(":8080"); err != nil {
 		fmt.Printf("服务器启动失败: %v\n", err)
-		s.CleanupRemote()
-		s.CleanupRemote4()
+		s.CleanupRemoteAll()
+
 	}
 }
 
@@ -46,8 +46,7 @@ func cleanupOnInterrupt(s *execute.SelfObject) {
 	go func() {
 		<-c // 等待信号
 		fmt.Println("收到中断信号，开始清理远程目录...")
-		s.CleanupRemote() // 调用远程清理函数
-		s.CleanupRemote4()
-		os.Exit(1) // 退出程序
+		s.CleanupRemoteAll() // 调用远程清理函数
+		os.Exit(1)           // 退出程序
 	}()
 }

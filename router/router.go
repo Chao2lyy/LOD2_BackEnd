@@ -32,5 +32,9 @@ func SetupRouter(s *execute.SelfObject) *gin.Engine {
 		execute.JsonExecute(c, s)
 	})
 
+	r.POST("/infer-execute", func(c *gin.Context) {
+		execute.InferRouteHandler(c, s)
+	})
+
 	return r
 }
